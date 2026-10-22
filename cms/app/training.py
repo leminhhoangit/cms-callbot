@@ -112,20 +112,30 @@ def _hash(rows):
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
-def _rows_by_fid(c, code, fids=None):
-    out = {}
-    q = "SELECT fid, title, content, questions, tags FROM rows WHERE province=?"
-    for r in c.execute(q + " ORDER BY fid, seq", (code,)):
-        if fids is None or r["fid"] in fids:
+def _rows_by_fid(c, code, fids):
+    """Dòng nội dung của các thủ tục chỉ định (đọc theo từng nhóm, không quét cả tỉnh)."""
+    out, fids = {}, list(fids)
+    for i in range(0, len(fids), 500):
+        part = fids[i:i + 500]
+        for r in c.execute(f"SELECT fid, title, content, questions, tags FROM rows WHERE province=? AND fid IN ({','.join('?' * len(part))})"
+                           " ORDER BY fid, seq", (code, *part)):
             out.setdefault(r["fid"], []).append(dict(r))
     return out
 
 
-def plan(c, code):
-    """Danh sách cần train / cần xoá ngay lúc này."""
-    procs = c.execute("SELECT fid, name, code, status, review, trained_hash FROM procedures WHERE province=?", (code,)).fetchall()
-    approved = {p["fid"] for p in procs if p["status"] == "ACTIVE" and p["review"] == "APPROVED"}
-    rows = _rows_by_fid(c, code, approved)
+def plan(c, code, with_rows=False):
+    """Danh sách cần train / cần xoá ngay lúc này. Băm nội dung lấy từ procedures.content_hash (tính lại khi nội dung đổi)."""
+    procs = c.execute("SELECT fid, name, code, status, review, trained_hash, content_hash FROM procedures WHERE province=?", (code,)).fetchall()
+    approved = [p for p in procs if p["status"] == "ACTIVE" and p["review"] == "APPROVED"]
+    stale = [p["fid"] for p in approved if not p["content_hash"]]
+    hashes = {p["fid"]: p["content_hash"] for p in approved}
+    if stale:
+        for fid, rs in _rows_by_fid(c, code, stale).items():
+            hashes[fid] = _hash(rs)
+            c.execute("UPDATE procedures SET content_hash=? WHERE province=? AND fid=?", (hashes[fid], code, fid))
+        c.commit()
+    need = [p["fid"] for p in approved if hashes.get(p["fid"]) != p["trained_hash"]]
+    rows = _rows_by_fid(c, code, need) if with_rows else {}
     upserts, synced, waiting, deletes = [], 0, 0, []
     for p in procs:
         if p["status"] == "REMOVED":
@@ -135,12 +145,12 @@ def plan(c, code):
         if p["review"] != "APPROVED":
             waiting += 1
             continue
-        h = _hash(rows.get(p["fid"], []))
+        h = hashes.get(p["fid"])
         if h == p["trained_hash"]:
             synced += 1
         else:
             upserts.append({"fid": p["fid"], "name": p["name"], "code": p["code"], "hash": h, "rows": rows.get(p["fid"], []),
-                            "first_time": not p["trained_hash"]})
+                            "n_rows": len(rows[p["fid"]]) if with_rows else None, "first_time": not p["trained_hash"]})
     return {"upserts": upserts, "deletes": deletes, "synced": synced, "waiting_review": waiting,
             "trained_any": sum(1 for p in procs if p["trained_hash"])}
 
@@ -173,7 +183,7 @@ def create_batch(c, code, actor, parent_id=None):
     if c.execute(f"SELECT 1 FROM training_batches WHERE province=? AND status IN ('DRAFT', {','.join('?' * len(ACTIVE))})",
                  (code, *ACTIVE)).fetchone():
         raise core.CmsError("Đã có lô chờ gửi / đang train cho tỉnh này – gửi hoặc huỷ lô đó trước")
-    p = plan(c, code)
+    p = plan(c, code, with_rows=True)
     if not p["upserts"] and not p["deletes"]:
         raise core.CmsError("Không có gì cần train: mọi thủ tục đã duyệt đều đã train đúng bản" +
                             (f" ({p['waiting_review']} thủ tục còn chờ duyệt)" if p["waiting_review"] else ""))

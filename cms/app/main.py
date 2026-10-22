@@ -257,7 +257,7 @@ def training_overview(code: str):
 def training_plan(code: str):
     def f(c):
         p = training.plan(c, _prov(c, code))
-        return {"upserts": [{k: u[k] for k in ("fid", "name", "code", "first_time")} | {"rows": len(u["rows"])} for u in p["upserts"]],
+        return {"upserts": [{k: u[k] for k in ("fid", "name", "code", "first_time")} for u in p["upserts"]],
                 "deletes": p["deletes"], "synced": p["synced"], "waiting_review": p["waiting_review"]}
     return run(f, write=False)
 

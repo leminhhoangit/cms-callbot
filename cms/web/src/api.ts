@@ -26,7 +26,7 @@ export type Row = { seq: number; title: string; content: string; questions: stri
 export type ProcDetail = Proc & { rows: Row[]; history: { at: string; actor: string; action: string; detail: string }[] }
 export type Job = { id: string; province: string; status: 'RUNNING' | 'SUCCEEDED' | 'FAILED'; started: string; finished: string | null; actor: string; raw: string
   result: (Import & { trial?: undefined }) | { trial: true; procedures: number; failures: number } | null; error: string | null; log_tail?: string }
-export type RawFile = { name: string; province: string; size: number; mtime: string }
+export type RawFile = { name: string; province: string; size: number; mtime: string; source?: 'tool' | 'cms' }
 export type ExportRec = { id: number; province: string; kind: string; at: string; actor: string; file: string; procedures: number; rows: number }
 export type Health = { name: string; ok: boolean; detail: string; ms: number }
 export type Audit = { id: number; at: string; actor: string; action: string; province: string | null; fid: string | null; detail: string }

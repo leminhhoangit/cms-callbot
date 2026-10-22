@@ -29,7 +29,8 @@ test('Tổng quan: chỉ thẻ tỉnh có dữ liệu, số liệu + tiến đ�
   expect(await screen.findByText('Tỉnh Khánh Hòa')).toBeInTheDocument()
   expect(screen.queryByText('Thành phố Bắc Ninh')).not.toBeInTheDocument()
   expect(document.body.textContent).toContain("72.875")
-  expect(screen.getByText('Cần duyệt 2.750')).toBeInTheDocument()
+  expect(screen.getByTestId('need-review-H32')).toHaveTextContent('2.750')
+  expect(screen.getByText('Thủ tục hành chính')).toBeInTheDocument()
 })
 
 test('Thủ tục: duyệt hàng loạt gửi đúng thủ tục + tên người thao tác', async () => {

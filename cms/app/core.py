@@ -81,8 +81,10 @@ CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT,
 
 def init(c):
     c.executescript(SCHEMA)
-    if "cmp_hash" not in {r[1] for r in c.execute("PRAGMA table_info(procedures)")}:
-        c.execute("ALTER TABLE procedures ADD COLUMN cmp_hash TEXT")
+    cols = {r[1] for r in c.execute("PRAGMA table_info(procedures)")}
+    for col in ("cmp_hash", "content_hash"):          # content_hash: băm nội dung hiện tại (bộ nhớ đệm cho trang Train bot)
+        if col not in cols:
+            c.execute(f"ALTER TABLE procedures ADD COLUMN {col} TEXT")
     if not c.execute("SELECT 1 FROM provinces LIMIT 1").fetchone():
         seed_provinces(c)
 
@@ -257,6 +259,7 @@ def _apply(c, code, gen, items, import_id, actor, mark_removed=True, cmp=None):
                   (code, fid, uri, d.get("codeNotation") or d.get("code"), name, cat, d.get("type"), _levels(d), d.get("updatedAt"),
                    json.dumps(d, ensure_ascii=False), json.dumps(items.get(fid, {}), ensure_ascii=False), change, review, import_id, cmp.get(fid)))
         c.execute("DELETE FROM rows WHERE province=? AND fid=?", (code, fid))
+        c.execute("UPDATE procedures SET content_hash=NULL WHERE province=? AND fid=?", (code, fid))
         c.executemany("INSERT INTO rows(province, fid, seq, title, content, ident, questions, tags) VALUES (?,?,?,?,?,?,?,?)",
                       [(code, fid, i, t, ct, rows[i][2], *keep.get(t, (None, None))) for i, (t, ct) in enumerate(new_rows)])
         n_rows += len(new_rows)
@@ -395,6 +398,7 @@ def edit_rows(c, code, fid, actor, edits):
         nq, nt = _norm_q(qs), _norm_q(tags)
         if (nq, nt) != (r["questions"] or None, r["tags"] or None):
             c.execute("UPDATE rows SET questions=?, tags=? WHERE province=? AND fid=? AND seq=?", (nq, nt, code, fid, int(seq)))
+            c.execute("UPDATE procedures SET content_hash=NULL WHERE province=? AND fid=?", (code, fid))
             n += 1
     if n:
         if p["review"] == "APPROVED":

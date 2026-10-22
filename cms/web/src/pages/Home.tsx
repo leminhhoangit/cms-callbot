@@ -1,53 +1,58 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Card, Col, Empty, Progress, Row, Skeleton, Space, Statistic, Tag, Typography } from 'antd'
-import { api, fmtAt, fmtNum, type Province } from '../api'
+import { Alert, Button, Card, Empty, Progress, Skeleton, Space, Table, Tooltip } from 'antd'
+import type { TableColumnsType } from 'antd'
+import { api, fmtAt, type Province, type Stats } from '../api'
 import { go } from '../App'
+import { n, PageHeader, StatStrip } from '../ui'
 
-/** Tổng quan – mỗi tỉnh đã có dữ liệu một thẻ: quy mô, mức độ biên tập câu hỏi, tiến độ duyệt, lần nhập gần nhất. */
+type Row = Province & { stats: Stats }
+
+/** Tổng quan – các tỉnh đã có dữ liệu trong một bảng để so sánh nhanh; số liệu chỉ từ dữ liệu đã nạp. */
 export default function Home() {
   const [d, setD] = useState<Province[] | null>(null)
   const [err, setErr] = useState('')
   useEffect(() => { api.provinces().then((x) => setD(x.provinces)).catch((e) => setErr((e as Error).message)) }, [])
-  if (err) return <Alert type="error" showIcon message={err} />
-  if (!d) return <Skeleton active />
-  const withData = d.filter((p) => p.stats)
-  const sum = (k: 'procedures' | 'rows' | 'need_review' | 'approved') => withData.reduce((a, p) => a + (p.stats?.[k] ?? 0), 0)
+  if (err) return <Alert type="error" showIcon message="Không tải được dữ liệu tổng quan" description={err} />
+  if (!d) return <Skeleton active paragraph={{ rows: 6 }} />
+  const rows = d.filter((p): p is Row => !!p.stats)
+  const sum = (k: 'procedures' | 'rows' | 'need_review' | 'approved' | 'removed') => rows.reduce((a, p) => a + p.stats[k], 0)
+  const total = sum('procedures')
+  const cols: TableColumnsType<Row> = [
+    { title: 'Tỉnh / thành', key: 'p', width: 230, render: (_, p) => <>
+      <a className="cell-title" onClick={() => go(`/p/${p.code}/list`)}>{p.display}</a> <span className="mono muted">{p.code}</span>
+      {!!p.auto && <div className="cell-sub"><Tooltip title="Chưa có địa chỉ Trung tâm Phục vụ HCC thật – nội dung đang dùng câu chung">
+        <a onClick={() => go(`/p/${p.code}/settings`)}>Thiếu địa chỉ tiếp nhận</a></Tooltip></div>}</> },
+    { title: 'Thủ tục', key: 'n', align: 'right', width: 100, render: (_, p) => <span className="num">{n(p.stats.procedures)}</span> },
+    { title: 'Dòng callbot', key: 'r', align: 'right', width: 120, render: (_, p) => <span className="num">{n(p.stats.rows)}</span> },
+    { title: 'Có câu hỏi', key: 'q', align: 'right', width: 110, render: (_, p) => <span className="num">{p.stats.questions_pct ?? 0}%</span> },
+    { title: 'Tiến độ duyệt', key: 'a', width: 220, render: (_, p) => <>
+      <Progress size="small" showInfo={false} percent={p.stats.procedures ? (100 * p.stats.approved) / p.stats.procedures : 0} />
+      <div className="cell-sub num">{n(p.stats.approved)} / {n(p.stats.procedures)} đã duyệt</div></> },
+    { title: 'Cần duyệt', key: 'w', align: 'right', width: 100, render: (_, p) => <span className="num" data-testid={`need-review-${p.code}`}>{n(p.stats.need_review)}</span> },
+    { title: 'Nạp gần nhất', key: 'l', width: 190, render: (_, p) => p.stats.last_import ? <Tooltip title={p.stats.last_import.source}>
+      <span className="num">{fmtAt(p.stats.last_import.at)}</span>
+      <div className="cell-sub">Mới {p.stats.last_import.added} · Đổi {p.stats.last_import.changed} · Gỡ {p.stats.last_import.removed}</div></Tooltip> : '—' },
+    { title: <span className="sr-only">Thao tác</span>, key: 'x', width: 140, render: (_, p) => <Space size={4}>
+      <Button size="small" onClick={() => go(`/p/${p.code}/training`)}>Train</Button>
+      <Button size="small" onClick={() => go(`/p/${p.code}/export`)}>Xuất</Button></Space> },
+  ]
   return (
     <div data-testid="home">
-      <Typography.Title level={4} style={{ marginTop: 0 }}>Tổng quan</Typography.Title>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={12} md={6}><Card><Statistic title="Tỉnh / thành có dữ liệu" value={withData.length} suffix={`/ ${d.length}`} /></Card></Col>
-        <Col xs={12} md={6}><Card><Statistic title="Thủ tục hành chính" value={sum('procedures')} groupSeparator="." /></Card></Col>
-        <Col xs={12} md={6}><Card><Statistic title="Dòng dữ liệu callbot" value={sum('rows')} groupSeparator="." /></Card></Col>
-        <Col xs={12} md={6}><Card><Statistic title="Thủ tục đã duyệt" value={sum('approved')} groupSeparator="." suffix={<span style={{ fontSize: 14 }}>/ {fmtNum(sum('procedures'))}</span>} /></Card></Col>
-      </Row>
-      {!withData.length && <Card><Empty description="Chưa nhập dữ liệu tỉnh nào – chọn tỉnh ở thanh trên → Dữ liệu nguồn" /></Card>}
-      <Row gutter={[16, 16]}>
-        {withData.map((p) => { const s = p.stats!
-          const pct = s.procedures ? Math.round((100 * s.approved) / s.procedures) : 0
-          return (
-            <Col xs={24} lg={12} key={p.code}>
-              <Card title={<Space>{p.display}<Tag bordered={false}>{p.code}</Tag></Space>}
-                extra={<Space><Button type="primary" onClick={() => go(`/p/${p.code}/list`)}>Mở</Button><Button onClick={() => go(`/p/${p.code}/export`)}>Xuất Excel</Button></Space>}>
-                <Row gutter={16}>
-                  <Col span={8}><Statistic title="Thủ tục" value={s.procedures ?? 0} groupSeparator="." /></Col>
-                  <Col span={8}><Statistic title="Dòng callbot" value={s.rows ?? 0} groupSeparator="." /></Col>
-                  <Col span={8}><Statistic title="Dòng có câu hỏi" value={s.questions_pct ?? 0} suffix="%" /></Col>
-                </Row>
-                <div style={{ marginTop: 12 }}>
-                  <Typography.Text type="secondary">Tiến độ duyệt nội dung</Typography.Text>
-                  <Progress percent={pct} format={() => `${fmtNum(s.approved)} / ${fmtNum(s.procedures)}`} />
-                </div>
-                <Space wrap>
-                  <Tag color="orange">Cần duyệt {fmtNum(s.need_review)}</Tag><Tag color="green">Đã duyệt {fmtNum(s.approved)}</Tag>
-                  {s.removed > 0 && <Tag color="red">Đã gỡ khỏi cổng {s.removed}</Tag>}
-                  {!!p.auto && <Tag color="gold">Địa chỉ tiếp nhận đang là câu chung</Tag>}
-                </Space>
-                {s.last_import && <div style={{ marginTop: 8 }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  Nhập gần nhất {fmtAt(s.last_import.at)} · {s.last_import.source} · Mới {s.last_import.added}, Thay đổi {s.last_import.changed}, Đã gỡ {s.last_import.removed}</Typography.Text></div>}
-              </Card>
-            </Col>) })}
-      </Row>
+      <PageHeader title="Tổng quan" description="Dữ liệu huấn luyện callbot theo tỉnh / thành, tính từ các lần nạp dữ liệu Cổng Dịch vụ công." />
+      <StatStrip label="Số liệu toàn hệ thống" items={[
+        { label: 'Tỉnh / thành có dữ liệu', value: rows.length, suffix: `/ ${d.length}` },
+        { label: 'Thủ tục hành chính', value: n(total) },
+        { label: 'Dòng dữ liệu callbot', value: n(sum('rows')) },
+        { label: 'Đã duyệt', value: n(sum('approved')), suffix: total ? `${((100 * sum('approved')) / total).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%` : undefined, tone: 'success' },
+        { label: 'Cần duyệt', value: n(sum('need_review')), tone: sum('need_review') ? 'warning' : undefined },
+      ]} />
+      {sum('removed') > 0 && <Alert style={{ marginBottom: 16 }} type="error" showIcon
+        message={`Có ${n(sum('removed'))} thủ tục đã gỡ khỏi cổng – cần xoá khỏi bot (trang Train bot của từng tỉnh)`} />}
+      <Card title="Tỉnh / thành đang quản lý" extra={<span className="small muted">{d.length - rows.length} tỉnh chưa có dữ liệu – chọn ở ô tỉnh trên cùng</span>}
+        styles={{ body: { padding: rows.length ? 0 : undefined } }}>
+        {rows.length ? <Table<Row> rowKey="code" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 1000 }} />
+          : <Empty description="Chưa nạp dữ liệu tỉnh nào"><Button type="primary" onClick={() => go('/p/H32/data')}>Nạp dữ liệu</Button></Empty>}
+      </Card>
     </div>
   )
 }
