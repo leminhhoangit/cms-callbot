@@ -1,0 +1,32 @@
+CẬP NHẬT DỮ LIỆU CALLBOT TỰ ĐỘNG HẰNG THÁNG
+============================================
+
+Thư mục này chạy được độc lập (không cần Claude):
+  scripts\                 các script thu thập / so sánh
+  data\                    dữ liệu thô làm mốc (H19 Đồng Nai, H32 Khánh Hòa - lấy ngày 22/10/2026)
+  out\                     kết quả mỗi tháng
+  logs\                    nhật ký mỗi lần chạy
+  tinh.txt                 danh sách mã tỉnh cần cập nhật (thêm/bớt dòng tùy ý)
+
+CÀI ĐẶT (1 lần)
+  1. Nhấp đúp  capnhat_hang_thang.bat  để chạy thử ngay (15-30 phút cho 2 tỉnh).
+     Xong mở thư mục out\ thấy file *_CapNhat_*.xlsx là chạy được.
+  2. Nhấp đúp  cai_lich_tu_dong.bat  -> lịch chạy 08:00 ngày 1 hằng tháng.
+     Nếu lúc đó máy tắt, lịch sẽ tự chạy bù khi bật máy.
+
+MỖI THÁNG
+  Mở out\  -> file  DNI_CapNhat_H19_<ngày>.xlsx, KHA_CapNhat_H32_<ngày>.xlsx
+    Sheet0  : chỉ các dòng TTHC mới + thay đổi -> nạp vào tập train
+    TongHop : danh sách Mới / Thay đổi / Đã gỡ (TTHC "Đã gỡ" nên xóa khỏi tập train)
+  Có lỗi: xem file mới nhất trong logs\
+
+THÊM TỈNH
+  Thêm mã vào tinh.txt. Lần đầu cho tỉnh mới phải tạo bộ đầy đủ trước:
+    python scripts\run_all.py "Nghệ An"
+  (sinh data\H41_raw.json.gz làm mốc; từ tháng sau lịch tự cập nhật)
+
+GỠ LỊCH:  nhấp đúp  go_lich_tu_dong.bat
+Đổi giờ/ngày: mở Task Scheduler -> "TTHC Callbot - Cap nhat hang thang".
+
+Lưu ý: máy cần bật và có mạng; nếu bị lỗi 403 / trả về HTML khi gọi
+dichvucong.gov.vn thì xem phần "Nếu Python bị chặn" trong README.md.

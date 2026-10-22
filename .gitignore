@@ -1,0 +1,17 @@
+# môi trường / build tạm
+__pycache__/
+*.pyc
+.venv/
+cms/.venv/
+cms/web/node_modules/
+.pytest_cache/
+# dữ liệu chạy của CMS (CSDL, file tải về, log, file xuất) – không đưa lên git
+cms/data/
+# kết quả / nhật ký của bộ công cụ
+out/
+logs/
+*.log
+# bí mật
+.env
+*.env
+*.tsbuildinfo

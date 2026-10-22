@@ -1,0 +1,4 @@
+# Ma tinh/thanh can cap nhat hang thang, moi dong 1 ma (xem danh sach: python scripts\collect_tthc.py --list-provinces)
+# H19 = Thanh pho Dong Nai, H32 = Khanh Hoa, H31 = Hung Yen, H41 = Nghe An ...
+H19
+H32

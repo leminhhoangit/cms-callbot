@@ -1,0 +1,79 @@
+{
+  "_note": "Mỗi tỉnh/thành có thể có mục riêng (mã Hxx). Tỉnh chưa có mục riêng sẽ được sinh cấu hình tự động từ '_codes' (lấy từ API list-provinces-with-formality-count). 'center_address' nên kiểm tra lại trước mỗi đợt thu thập.",
+  "H19": {
+    "display": "Thành phố Đồng Nai",
+    "short": "Đồng Nai",
+    "ubnd": "UBND Thành phố Đồng Nai",
+    "in_phrase": "tại Thành phố Đồng Nai",
+    "center_address": "Trung tâm Phục vụ hành chính công Thành phố Đồng Nai, số 225 đường Võ Thị Sáu, khu phố 7, phường Trấn Biên, Thành phố Đồng Nai (đối với TTHC cấp tỉnh); Trung tâm Phục vụ hành chính công các xã, phường thuộc Thành phố Đồng Nai (đối với TTHC cấp xã)",
+    "file_prefix": "DNI"
+  },
+  "H31": {
+    "display": "Tỉnh Hưng Yên",
+    "short": "Hưng Yên",
+    "ubnd": "UBND tỉnh Hưng Yên",
+    "in_phrase": "tại tỉnh Hưng Yên",
+    "center_address": "Trung tâm Phục vụ hành chính công tỉnh Hưng Yên (đối với TTHC cấp tỉnh); Trung tâm Phục vụ hành chính công các xã, phường thuộc tỉnh Hưng Yên (đối với TTHC cấp xã)",
+    "file_prefix": "HYN"
+  },
+  "H29": {
+    "display": "Thành phố Hồ Chí Minh",
+    "short": "Hồ Chí Minh",
+    "ubnd": "UBND Thành phố Hồ Chí Minh",
+    "in_phrase": "tại Thành phố Hồ Chí Minh",
+    "center_address": "Trung tâm Phục vụ hành chính công Thành phố Hồ Chí Minh (đối với TTHC cấp tỉnh); Trung tâm Phục vụ hành chính công các xã, phường (đối với TTHC cấp xã)",
+    "file_prefix": "HCM"
+  },
+  "H26": {
+    "display": "Thành phố Hà Nội",
+    "short": "Hà Nội",
+    "ubnd": "UBND Thành phố Hà Nội",
+    "in_phrase": "tại Thành phố Hà Nội",
+    "center_address": "Trung tâm Phục vụ hành chính công Thành phố Hà Nội (đối với TTHC cấp tỉnh); Trung tâm Phục vụ hành chính công các xã, phường (đối với TTHC cấp xã)",
+    "file_prefix": "HNI"
+  },
+  "H32": {
+    "display": "Tỉnh Khánh Hòa",
+    "short": "Khánh Hòa",
+    "ubnd": "UBND tỉnh Khánh Hòa",
+    "in_phrase": "tại tỉnh Khánh Hòa",
+    "center_address": "Trung tâm Phục vụ hành chính công tỉnh Khánh Hòa - Cơ sở 1: số 84 Hoàng Hoa Thám, phường Nha Trang, tỉnh Khánh Hòa (đường dây nóng 0258.3881122); Cơ sở 2: số 450 Thống Nhất, phường Phan Rang, tỉnh Khánh Hòa (đường dây nóng 0259.3828269) (đối với TTHC cấp tỉnh); Trung tâm Phục vụ hành chính công các xã, phường thuộc tỉnh Khánh Hòa (đối với TTHC cấp xã)",
+    "file_prefix": "KHA"
+  },
+  "_codes": {
+    "H37": "UBND tỉnh Lạng Sơn",
+    "H05": "UBND thành phố Bắc Ninh",
+    "H32": "UBND tỉnh Khánh Hòa",
+    "H13": "UBND Thành phố Cần Thơ",
+    "H18": "UBND tỉnh Điện Biên",
+    "H35": "UBND tỉnh Lai Châu",
+    "H38": "UBND tỉnh Lào Cai",
+    "H36": "UBND tỉnh Lâm Đồng",
+    "H31": "UBND tỉnh Hưng Yên",
+    "H19": "UBND Thành phố Đồng Nai",
+    "H17": "UBND Thành phố Đà Nẵng",
+    "H41": "UBND tỉnh Nghệ An",
+    "H15": "UBND tỉnh Đắk Lắk",
+    "H12": "UBND tỉnh Cà Mau",
+    "H42": "UBND tỉnh Ninh Bình",
+    "H55": "UBND tỉnh Thái Nguyên",
+    "H52": "UBND tỉnh Sơn La",
+    "H01": "UBND tỉnh An Giang",
+    "H29": "UBND Thành phố Hồ Chí Minh",
+    "H44": "UBND tỉnh Phú Thọ",
+    "H49": "UBND thành phố Quảng Ninh",
+    "H53": "UBND tỉnh Tây Ninh",
+    "H48": "UBND tỉnh Quảng Ngãi",
+    "H26": "UBND Thành phố Hà Nội",
+    "H24": "UBND Thành phố Hải Phòng",
+    "H21": "UBND tỉnh Gia Lai",
+    "H56": "UBND tỉnh Thanh Hóa",
+    "H20": "UBND tỉnh Đồng Tháp",
+    "H50": "UBND tỉnh Quảng Trị",
+    "H27": "UBND tỉnh Hà Tĩnh",
+    "H61": "UBND tỉnh Vĩnh Long",
+    "H60": "UBND tỉnh Tuyên Quang",
+    "H57": "UBND Thành phố Huế",
+    "H14": "UBND tỉnh Cao Bằng"
+  }
+}
