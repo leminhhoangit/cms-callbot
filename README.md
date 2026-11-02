@@ -1,5 +1,17 @@
 # Bộ công cụ thu thập dữ liệu TTHC cho callbot
 
+## Triển khai nhanh qua Docker (Khuyên dùng)
+Hệ thống đã được đóng gói hoàn chỉnh gồm **Web CMS** và **iCC Mock Server**:
+```bash
+docker-compose up -d --build
+```
+Hoặc trên Windows chỉ cần nhấp đúp file **`docker-start.bat`**.
+- Truy cập CMS Web: [http://localhost:8780](http://localhost:8780)
+- Mock iCC API: [http://localhost:8790/docs](http://localhost:8790/docs)
+- Xem hướng dẫn chi tiết tại [DOCKER.md](file:///c:/Users/admin/Desktop/VNPT/cms-callbot/DOCKER.md).
+
+---
+
 ## Chạy cho một tỉnh/thành bất kỳ — chỉ đổi tên tỉnh
 ```
 pip install requests openpyxl

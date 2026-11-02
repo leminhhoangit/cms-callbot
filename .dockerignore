@@ -1,0 +1,49 @@
+# ========================================================
+# .dockerignore cho CMS Callbot
+# ========================================================
+
+# Quản lý mã nguồn & công cụ phát triển
+.git
+.gitignore
+.claude
+.idea
+.vscode
+
+# Python cache & virtual environments
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.venv
+cms/.venv
+env/
+venv/
+
+# Caches & kết quả kiểm thử
+.pytest_cache/
+.coverage
+htmlcov/
+*.tsbuildinfo
+
+# Frontend build cache & node modules
+cms/web/node_modules/
+cms/web/.vite/
+
+# Dữ liệu nội bộ runtime / log máy chủ (được mount qua volume nếu cần)
+cms/data/cms.db
+cms/data/cms.db-journal
+cms/data/exports/
+cms/data/logs/
+cms/data/raw/
+out/
+logs/
+*.log
+
+# Tài liệu dung lượng lớn (docx, hình ảnh báo cáo)
+docs/*.docx
+docs/images/
+
+# File kịch bản Windows trên máy trạm
+*.bat
+HUONG_DAN_LICH_TU_DONG.txt
+

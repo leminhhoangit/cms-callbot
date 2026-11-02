@@ -1,0 +1,63 @@
+services:
+  # --------------------------------------------------------
+  # 1. CMS Quản lý dữ liệu Callbot TTHC (Web + API)
+  # --------------------------------------------------------
+  cms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cms-callbot
+    restart: unless-stopped
+    ports:
+      - "${CMS_PORT:-8780}:8780"
+    environment:
+      - CMS_PORT=8780
+      - CMS_DATA_DIR=/app/cms/data
+      - CMS_TRAIN_PROVIDER=mock
+      - CMS_TRAIN_URL=http://mock-icc:8790
+      - CMS_TRAIN_API_KEY=mock-key
+      - CMS_PUBLIC_URL=http://localhost:${CMS_PORT:-8780}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Dữ liệu nội bộ CMS (CSDL SQLite cms.db, file xuất, raw nội bộ)
+      - cms_data:/app/cms/data
+      # Đồng bộ thư mục data và kết quả xuất ra máy host
+      - ./data:/app/data
+      - ./out:/app/out
+      - ./logs:/app/logs
+    depends_on:
+      - mock-icc
+    networks:
+      - callbot-net
+
+  # --------------------------------------------------------
+  # 2. iCC Giả lập (Mock Server huấn luyện Callbot)
+  # --------------------------------------------------------
+  mock-icc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cms-mock-icc
+    restart: unless-stopped
+    working_dir: /app/cms
+    command: ["python", "-m", "uvicorn", "mock_icc.app:app", "--host", "0.0.0.0", "--port", "8790"]
+    ports:
+      - "${MOCK_ICC_PORT:-8790}:8790"
+    environment:
+      - MOCK_ICC_API_KEY=mock-key
+      - MOCK_QUEUE_SECONDS=3
+      - MOCK_ROWS_PER_SEC=4000
+      - MOCK_FAIL_RATE=0
+      - MOCK_CALLBACK_SECRET=mock-secret
+      - PYTHONUNBUFFERED=1
+    networks:
+      - callbot-net
+
+networks:
+  callbot-net:
+    driver: bridge
+
+volumes:
+  cms_data:
+    driver: local
+
